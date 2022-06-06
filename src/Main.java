@@ -17,21 +17,36 @@ public class Main {
         vertexes.sort(Comparator.comparingInt(Vertex::getFrequency));
         code(vertexes.get(0), vertexes.get(1), vertexes);
         allVertexes.sort(Comparator.comparingInt(Vertex::getFrequency).reversed());
-        allVertexes.forEach(e -> System.out.println(e.getCharacters() + ", " + e.getFrequency() + ", " + e.getLr()));
 
-        /*for (int i = 3; i < allVertexes.size(); i++) {
+        for (int i = 3; i < allVertexes.size(); i++) {
             Vertex v = null;
-            for (int j = 0; j < allVertexes.size(); j++) {
-                if (allVertexes.get(j).getCharacters().contains(allVertexes.get(i).getCharacters()) &&
-                        !allVertexes.get(j).getCharacters().equals(allVertexes.get(i).getCharacters()))
-                    v = allVertexes.get(j);
+            for (Vertex vertex : allVertexes) {
+                if (vertex.getCharacters().contains(allVertexes.get(i).getCharacters()) &&
+                        !vertex.getCharacters().equals(allVertexes.get(i).getCharacters()))
+                    v = vertex;
             }
             Stack<Byte> tmpStack = new Stack<>();
             tmpStack.addAll(allVertexes.get(i).getLr());
             if (v != null)
                 tmpStack.addAll(v.getLr());
-        }*/
+            allVertexes.get(i).setLr(tmpStack);
+        }
 
+        for (int i = 1; i < allVertexes.size(); i++)
+            allVertexes.get(i).setLr(reverseStack(allVertexes.get(i).getLr()));
+        //allVertexes.forEach(e -> System.out.println(e.getCharacters() + ", " + e.getFrequency() + ", " + e.getLr()));
+        allVertexes.stream()
+                .filter(e -> e.getCharacters().length() == 1)
+                .forEach(e -> System.out.println(e.getCharacters() + ", " + e.getFrequency() + ", " + e.getLr()));
+
+
+    }
+
+    private static Stack<Byte> reverseStack(Stack<Byte> stack) {
+        Stack<Byte> reversedStack = new Stack<>();
+        while (stack.size() != 0)
+            reversedStack.push(stack.pop());
+        return reversedStack;
     }
 
     private static void code(Vertex vertex1, Vertex vertex2, List<Vertex> vertexes) {
