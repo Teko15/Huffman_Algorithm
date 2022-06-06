@@ -12,34 +12,33 @@ public class Main {
             System.exit(-args.length);
         }
         List<String> lines = readFromFile(args[0]);
-        List<Vertex> vertexes = new ArrayList<>();
-        lines.forEach(e -> vertexes.add(createData(e)));
-        vertexes.sort(Comparator.comparingInt(Vertex::getFrequency));
-        code(vertexes.get(0), vertexes.get(1), vertexes);
+        List<Vertex> nodes = new ArrayList<>();
+        lines.forEach(e -> nodes.add(createData(e)));
+        nodes.sort(Comparator.comparingInt(Vertex::getFrequency));
+
+        coding(nodes.get(0), nodes.get(1), nodes);
         allVertexes.sort(Comparator.comparingInt(Vertex::getFrequency).reversed());
 
         for (int i = 3; i < allVertexes.size(); i++) {
-            Vertex v = null;
+            Vertex tmpVertex = new Vertex();
             for (Vertex vertex : allVertexes) {
                 if (vertex.getCharacters().contains(allVertexes.get(i).getCharacters()) &&
                         !vertex.getCharacters().equals(allVertexes.get(i).getCharacters()))
-                    v = vertex;
+                    tmpVertex = vertex;
             }
+
             Stack<Byte> tmpStack = new Stack<>();
-            tmpStack.addAll(allVertexes.get(i).getLr());
-            if (v != null)
-                tmpStack.addAll(v.getLr());
-            allVertexes.get(i).setLr(tmpStack);
+            tmpStack.addAll(allVertexes.get(i).getPath());
+            tmpStack.addAll(tmpVertex.getPath());
+            allVertexes.get(i).setPath(tmpStack);
         }
 
         for (int i = 1; i < allVertexes.size(); i++)
-            allVertexes.get(i).setLr(reverseStack(allVertexes.get(i).getLr()));
-        //allVertexes.forEach(e -> System.out.println(e.getCharacters() + ", " + e.getFrequency() + ", " + e.getLr()));
+            allVertexes.get(i).setPath(reverseStack(allVertexes.get(i).getPath()));
+        //allVertexes.forEach(e -> System.out.println(e.getCharacters() + e.getPath() + ", number of occurrences: " + e.getFrequency()));
         allVertexes.stream()
                 .filter(e -> e.getCharacters().length() == 1)
-                .forEach(e -> System.out.println(e.getCharacters() + ", " + e.getFrequency() + ", " + e.getLr()));
-
-
+                .forEach(System.out::println);
     }
 
     private static Stack<Byte> reverseStack(Stack<Byte> stack) {
@@ -49,24 +48,29 @@ public class Main {
         return reversedStack;
     }
 
-    private static void code(Vertex vertex1, Vertex vertex2, List<Vertex> vertexes) {
+    private static void coding(Vertex vertex1, Vertex vertex2, List<Vertex> vertexes) {
         Stack<Byte> firstPath = new Stack<>();
         firstPath.push((byte) 0);
-        vertex1.setLr(firstPath);
+        vertex1.setPath(firstPath);
 
         Stack<Byte> secondPath = new Stack<>();
         secondPath.push((byte) 1);
-        vertex2.setLr(secondPath);
+        vertex2.setPath(secondPath);
 
-        Vertex newVertex = new Vertex((vertex1.getCharacters() + vertex2.getCharacters()), vertex1.getFrequency() + vertex2.getFrequency());
+        Vertex newVertex = new Vertex(
+                (vertex1.getCharacters() + vertex2.getCharacters()),
+                vertex1.getFrequency() + vertex2.getFrequency()
+        );
+
         vertexes.add(newVertex);
         allVertexes.add(vertex1);
         allVertexes.add(vertex2);
         vertexes.remove(vertex1);
         vertexes.remove(vertex2);
+
         vertexes.sort(Comparator.comparingInt(Vertex::getFrequency));
         if (vertexes.size() > 1)
-            code(vertexes.get(0), vertexes.get(1), vertexes);
+            coding(vertexes.get(0), vertexes.get(1), vertexes);
         else
             allVertexes.add(newVertex);
     }
@@ -91,14 +95,17 @@ public class Main {
 }
 
 class Vertex {
-    private final String characters;
-    private final int frequency;
     //0 = left, 1 = right
-    private Stack<Byte> lr;
+    private Stack<Byte> path;
+    private String characters;
+    private int frequency;
 
     public Vertex(String characters, int frequency) {
         this.characters = characters;
         this.frequency = frequency;
+    }
+
+    public Vertex() {
     }
 
     public String getCharacters() {
@@ -109,11 +116,23 @@ class Vertex {
         return frequency;
     }
 
-    public Stack<Byte> getLr() {
-        return lr;
+    public Stack<Byte> getPath() {
+        return path;
     }
 
-    public void setLr(Stack<Byte> lr) {
-        this.lr = lr;
+    private String printPath() {
+        StringBuilder returner = new StringBuilder();
+        for (Byte aByte : path)
+            returner.append(aByte);
+        return returner.toString();
+    }
+
+    public void setPath(Stack<Byte> path) {
+        this.path = path;
+    }
+
+    @Override
+    public String toString() {
+        return characters + printPath() + ", number of occurrences: " + frequency;
     }
 }
